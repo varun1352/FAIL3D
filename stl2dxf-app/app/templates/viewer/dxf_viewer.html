@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}DXF Viewer - FAIL3D{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-full bg-background">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-border">
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-blue-600 transform rotate-45"></div>
+                <h1 class="text-xl font-semibold text-foreground ml-3">FAIL3D Viewer</h1>
+            </div>
+            <div class="text-sm text-muted-foreground">
+                <span id="filename">No file loaded</span>
+                (<span id="filesize">0</span> bytes)
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button id="download-btn" class="btn btn-primary" disabled>
+                <i class="fas fa-download mr-2"></i>Download DXF
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex">
+        <!-- Viewer Container -->
+        <div id="dxf-viewer-container" class="flex-1 relative bg-card">
+            <!-- Loading State -->
+            <div id="loading" class="absolute inset-0 flex items-center justify-center bg-background/80 z-10 hidden">
+                <div class="flex flex-col items-center space-y-4">
+                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                    <p class="text-muted-foreground">Loading DXF file...</p>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="error" class="absolute inset-0 flex items-center justify-center bg-background/80 z-10 hidden">
+                <div class="flex flex-col items-center space-y-4 p-6 bg-card rounded-lg shadow-lg">
+                    <i class="fas fa-exclamation-triangle text-4xl text-destructive"></i>
+                    <p id="error-message" class="text-destructive text-center"></p>
+                    <button onclick="location.reload()" class="btn btn-secondary">
+                        <i class="fas fa-redo mr-2"></i>Reload Viewer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="w-64 border-l border-border bg-card p-4 flex flex-col space-y-4">
+            <!-- Controls -->
+            <div class="space-y-2">
+                <h3 class="text-sm font-medium text-foreground">Controls</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="viewer.zoomIn()" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-search-plus mr-2"></i>Zoom In
+                    </button>
+                    <button onclick="viewer.zoomOut()" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-search-minus mr-2"></i>Zoom Out
+                    </button>
+                    <button onclick="viewer.resetView()" class="btn btn-secondary btn-sm col-span-2">
+                        <i class="fas fa-expand mr-2"></i>Reset View
+                    </button>
+                </div>
+            </div>
+
+            <!-- Measurements -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-medium text-foreground">Measurements</h3>
+                    <button onclick="viewer.toggleMeasureMode()" class="btn btn-ghost btn-sm" id="measure-toggle">
+                        <i class="fas fa-ruler mr-2"></i>Measure
+                    </button>
+                </div>
+                <div id="measurements" class="space-y-1 text-sm text-muted-foreground max-h-40 overflow-y-auto">
+                    <!-- Measurements will be added here -->
+                </div>
+            </div>
+
+            <!-- Layers -->
+            <div class="space-y-2">
+                <h3 class="text-sm font-medium text-foreground">Layers</h3>
+                <div id="layer-list" class="space-y-1">
+                    <!-- Layers will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='js/three.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/OrbitControls.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dxf-parser.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dxf-viewer.js') }}"></script>
+
+<script>
+let viewer;
+let fileId = '{{ file_id }}';
+
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('dxf-viewer-container');
+    viewer = new DXFViewer(container);
+
+    // Load DXF file
+    if (fileId) {
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const errorMessageEl = document.getElementById('error-message');
+        const downloadBtn = document.getElementById('download-btn');
+
+        loadingEl.classList.remove('hidden');
+        
+        fetch(`/api/dxf/${fileId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load DXF file');
+                }
+                return response.text();
+            })
+            .then(data => {
+                try {
+                    viewer.loadDXF(data);
+                    
+                    // Update file info
+                    document.getElementById('filename').textContent = fileId;
+                    document.getElementById('filesize').textContent = data.length;
+                    
+                    // Enable download
+                    downloadBtn.disabled = false;
+                    downloadBtn.onclick = () => {
+                        window.location.href = `/api/dxf/${fileId}/download`;
+                    };
+                } catch (err) {
+                    throw err;
+                } finally {
+                    loadingEl.classList.add('hidden');
+                }
+            })
+            .catch(error => {
+                loadingEl.classList.add('hidden');
+                errorEl.classList.remove('hidden');
+                errorMessageEl.textContent = error.message;
+                console.error('Error loading DXF:', error);
+            });
+    }
+
+    // Toggle measure mode button state
+    const measureToggle = document.getElementById('measure-toggle');
+    measureToggle.addEventListener('click', function() {
+        this.classList.toggle('btn-primary');
+        this.classList.toggle('btn-ghost');
+    });
+});
+</script>
+{% endblock %} 

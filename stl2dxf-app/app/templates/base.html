@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FAIL3D{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+    </style>
+    
+    <!-- Tailwind CSS -->
+    <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --bg-card: #111111;
+            --bg-input: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --border-color: #222222;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --destructive: #ef4444;
+            --accent-color: #2563eb;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Geist Mono', monospace;
+            min-height: 100vh;
+        }
+
+        .nav-container {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: rgba(17, 17, 17, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 400;
+            font-size: 1.25rem;
+        }
+
+        .nav-logo {
+            width: 24px;
+            height: 24px;
+            background-color: var(--primary);
+            transform: rotate(45deg);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 400;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background-color: rgba(37, 99, 235, 0.1);
+        }
+
+        .nav-divider {
+            width: 1px;
+            height: 24px;
+            background-color: var(--border-color);
+            margin: 0 0.5rem;
+        }
+
+        .nav-link.danger {
+            color: var(--destructive);
+        }
+
+        .nav-link.danger:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        input {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            transition: all 0.2s;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        button {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+    </style>
+    
+    <!-- Additional styles -->
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="nav-content">
+            <a href="/" class="nav-brand">
+                <div class="nav-logo"></div>
+                FAIL3D
+            </a>
+            
+            <div class="nav-links">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard.index') }}" class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+                    Dashboard
+                </a>
+                <a href="{{ url_for('dashboard.settings') }}" class="nav-link {% if request.endpoint == 'dashboard.settings' %}active{% endif %}">
+                    Settings
+                </a>
+                <a href="{{ url_for('dashboard.about') }}" class="nav-link {% if request.endpoint == 'dashboard.about' %}active{% endif %}">
+                    About
+                </a>
+                <a href="{{ url_for('dashboard.help') }}" class="nav-link {% if request.endpoint == 'dashboard.help' %}active{% endif %}">
+                    Help
+                </a>
+                <div class="nav-divider"></div>
+                <a href="{{ url_for('auth.logout') }}" class="nav-link danger">
+                    Logout
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

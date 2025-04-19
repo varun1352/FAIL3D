@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}STL Viewer - {{ file_info.original_name }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                <li class="breadcrumb-item active">STL Viewer: {{ file_info.original_name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">STL Viewer</h3>
+            </div>
+            <div class="card-body">
+                <div id="stlViewer" class="viewer-container"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">File Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Filename:</strong> {{ file_info.original_name }}</p>
+                <p><strong>Upload Date:</strong> {{ file_info.upload_date }}</p>
+                <p>
+                    <strong>Status:</strong> 
+                    <span id="statusBadge" class="status-badge {{ file_info.status }}">
+                        {{ file_info.status.title() }}
+                    </span>
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('viewer.download_stl', file_id=file_info.id) }}" class="btn btn-sm btn-outline-dark">Download STL File</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">Convert to DXF</h5>
+            </div>
+            <div class="card-body">
+                {% if file_info.processed %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> This file has been processed.
+                </div>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('viewer.view_dxf', file_id=file_info.id) }}" class="btn btn-primary mb-2">View DXF Drawing</a>
+                    <a href="{{ url_for('viewer.download_dxf', file_id=file_info.id) }}" class="btn btn-outline-dark">Download DXF File</a>
+                </div>
+                {% elif file_info.status == 'processing' %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-cog fa-spin"></i> Processing in progress...
+                </div>
+                <div id="processingProgress" class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                </div>
+                <p class="text-center">This may take a few minutes depending on the complexity of your model.</p>
+                {% else %}
+                <p>Convert this STL file to a DXF engineering drawing with orthographic projections.</p>
+                <div class="d-grid gap-2">
+                    <button id="processButton" class="btn btn-success">Process to DXF</button>
+                </div>
+                <div id="processingStatus" class="mt-3" style="display: none;">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-cog fa-spin"></i> Processing in progress...
+                    </div>
+                    <div class="progress mb-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                    </div>
+                    <p class="text-center">This may take a few minutes depending on the complexity of your model.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.137.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/loaders/STLLoader.js"></script>
+<script>
+    // File info for the JavaScript
+    const fileInfo = {
+        id: "{{ file_info.id }}",
+        stlPath: "{{ url_for('viewer.serve_stl_file', filename=file_info.stl_filename) }}",
+        status: "{{ file_info.status }}"
+    };
+</script>
+<script src="{{ url_for('static', filename='js/stl-viewer.js') }}"></script>
+{% endblock %}

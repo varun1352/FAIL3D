@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}FAIL3D - STL to DXF Converter{% endblock %}
+
+{% block styles %}
+<style>
+    .main-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    /* .logo {
+        display: flex;
+        align-items: center;
+    }
+    
+    .logo img {
+        height: 40px;
+        margin-right: 1rem;
+    }
+    
+    .logo h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    } */
+    
+    .user-menu {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: var(--secondary-bg);
+        border-radius: 5px;
+        border: 1px solid var(--border-color);
+    }
+    
+    .user-info .material-icons {
+        color: var(--text-secondary);
+    }
+    
+    .upload-section {
+        text-align: center;
+        padding: 3rem;
+        border: 2px dashed var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        background: var(--secondary-bg);
+        transition: all 0.3s ease;
+    }
+    
+    .upload-section.drag-over {
+        border-color: var(--accent-blue);
+        background: rgba(74, 136, 247, 0.1);
+    }
+    
+    .upload-section h2 {
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+    
+    .upload-section p {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+    }
+    
+    .file-input {
+        display: none;
+    }
+    
+    .recent-files {
+        margin-top: 3rem;
+    }
+    
+    .recent-files h2 {
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+    }
+    
+    .files-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .file-card {
+        background: var(--secondary-bg);
+        border-radius: 10px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        border: 1px solid var(--border-color);
+    }
+    
+    .file-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .file-icon {
+        font-size: 2.5rem;
+        color: var(--accent-blue);
+        margin-bottom: 1rem;
+    }
+    
+    .file-name {
+        font-weight: 400;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+    
+    .file-info {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+    
+    .file-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .file-actions .btn {
+        padding: 0.5rem;
+        flex: 1;
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+    
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid var(--border-color);
+        border-radius: 50%;
+        border-top-color: var(--accent-blue);
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    .alert {
+        padding: 1rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .alert-success {
+        background: rgba(40, 167, 69, 0.1);
+        border: 1px solid var(--success-color);
+        color: var(--success-color);
+    }
+    
+    .alert-error {
+        background: rgba(220, 53, 69, 0.1);
+        border: 1px solid var(--error-color);
+        color: var(--error-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <header class="header">
+        <div class="logo">
+            <!-- <img src="{{ url_for('static', filename='images/logo.png') }}" alt="FAIL3D Logo"> -->
+            <h1>FAIL3D</h1>
+        </div>
+        <div class="user-menu">
+            <div class="user-info">
+                <span class="material-icons">account_circle</span>
+                <span>{{ current_user.email }}</span>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary">
+                <span class="material-icons">logout</span>
+                Logout
+            </a>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <span class="material-icons">{% if category == 'success' %}check_circle{% else %}error{% endif %}</span>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="upload-section" id="upload-zone">
+        <h2>Upload STL File</h2>
+        <p>Drag and drop your STL file here or click to browse</p>
+        <form id="upload-form" action="{{ url_for('main.upload_file') }}" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="file-input" class="file-input" accept=".stl">
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                <span class="material-icons">upload_file</span>
+                Choose File
+            </button>
+        </form>
+    </div>
+
+    <section class="recent-files">
+        <h2>Recent Files</h2>
+        <div class="files-grid">
+            {% for file in files %}
+            <div class="file-card">
+                <div class="file-icon">
+                    <span class="material-icons">description</span>
+                </div>
+                <div class="file-name">{{ file.filename }}</div>
+                <div class="file-info">
+                    Uploaded {{ file.upload_date.strftime('%Y-%m-%d %H:%M') }}
+                </div>
+                <div class="file-actions">
+                    <a href="{{ url_for('viewer.view_file', file_id=file.id) }}" class="btn btn-primary">
+                        <span class="material-icons">visibility</span>
+                        View
+                    </a>
+                    <button class="btn btn-secondary" onclick="deleteFile('{{ file.id }}')">
+                        <span class="material-icons">delete</span>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+    const uploadForm = document.getElementById('upload-form');
+    const loadingOverlay = document.getElementById('loading-overlay');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    uploadZone.addEventListener('drop', handleDrop, false);
+    fileInput.addEventListener('change', handleFileSelect, false);
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight(e) {
+        uploadZone.classList.add('drag-over');
+    }
+
+    function unhighlight(e) {
+        uploadZone.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+
+    function handleFileSelect(e) {
+        const files = e.target.files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.name.toLowerCase().endsWith('.stl')) {
+                const formData = new FormData(uploadForm);
+                formData.set('file', file);
+                uploadFile(formData);
+            } else {
+                alert('Please upload an STL file');
+            }
+        }
+    }
+
+    function uploadFile(formData) {
+        loadingOverlay.style.display = 'flex';
+        
+        fetch(uploadForm.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.message || 'Upload failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred during upload');
+        })
+        .finally(() => {
+            loadingOverlay.style.display = 'none';
+        });
+    }
+
+    function deleteFile(fileId) {
+        if (confirm('Are you sure you want to delete this file?')) {
+            loadingOverlay.style.display = 'flex';
+            
+            fetch(`/delete/${fileId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Delete failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the file');
+            })
+            .finally(() => {
+                loadingOverlay.style.display = 'none';
+            });
+        }
+    }
+</script>
+{% endblock %} 

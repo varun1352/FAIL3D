@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}STL Viewer - {{ file.filename }}{% endblock %}
+
+{% block styles %}
+<style>
+    #stl-viewer-container {
+        width: 100%;
+        height: 80vh;
+        background: #f5f5f5;
+        position: relative;
+    }
+    .viewer-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .file-info {
+        margin: 20px 0;
+        padding: 15px;
+        background: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="file-info">
+                <h3>{{ file.filename }}</h3>
+                <p><strong>Upload Date:</strong> {{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                <p><strong>Status:</strong> <span class="badge bg-{{ 'success' if file.processed else 'warning' }}">{{ file.status.title() }}</span></p>
+            </div>
+            
+            <div id="stl-viewer-container">
+                <div class="viewer-controls">
+                    <button class="btn btn-sm btn-outline-primary" id="resetView">Reset View</button>
+                    <button class="btn btn-sm btn-outline-secondary" id="wireframe">Toggle Wireframe</button>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-between">
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">Back to Dashboard</a>
+                <div>
+                    <a href="{{ url_for('viewer.download_file', file_id=file.id, format='stl') }}" class="btn btn-primary">
+                        <i class="fas fa-download"></i> Download STL
+                    </a>
+                    {% if not file.processed %}
+                    <button class="btn btn-success" id="processButton">
+                        <i class="fas fa-cog"></i> Convert to DXF
+                    </button>
+                    {% else %}
+                    <a href="{{ url_for('viewer.view_dxf', file_id=file.id) }}" class="btn btn-success">
+                        <i class="fas fa-eye"></i> View DXF
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let scene, camera, renderer, controls, mesh;
+    const container = document.getElementById('stl-viewer-container');
+
+    function init() {
+        // Scene setup
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf5f5f5);
+
+        // Camera setup
+        camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.z = 100;
+
+        // Renderer setup
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        // Controls setup
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        // Load STL file
+        const loader = new THREE.STLLoader();
+        loader.load('{{ url_for("viewer.download_file", file_id=file.id, format="stl") }}', function(geometry) {
+            geometry.center();
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x00ff00,
+                specular: 0x111111,
+                shininess: 200
+            });
+            
+            mesh = new THREE.Mesh(geometry, material);
+            
+            // Scale to fit view
+            const box = new THREE.Box3().setFromObject(mesh);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 50 / maxDim;
+            mesh.scale.multiplyScalar(scale);
+            
+            scene.add(mesh);
+            
+            // Adjust camera
+            const distance = maxDim * 2;
+            camera.position.set(distance, distance, distance);
+            camera.lookAt(scene.position);
+            
+            controls.update();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function onWindowResize() {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+
+    init();
+    animate();
+
+    // Control buttons
+    document.getElementById('resetView').addEventListener('click', function() {
+        if (mesh) {
+            camera.position.set(100, 100, 100);
+            camera.lookAt(scene.position);
+            controls.update();
+        }
+    });
+
+    document.getElementById('wireframe').addEventListener('click', function() {
+        if (mesh) {
+            mesh.material.wireframe = !mesh.material.wireframe;
+        }
+    });
+
+    // Process button
+    const processButton = document.getElementById('processButton');
+    if (processButton) {
+        processButton.addEventListener('click', function() {
+            processButton.disabled = true;
+            processButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            fetch('{{ url_for("viewer.process", file_id=file.id) }}', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'processing' || data.status === 'complete') {
+                    // Start checking the processing status
+                    checkProcessingStatus();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to start processing'));
+                    processButton.disabled = false;
+                    processButton.innerHTML = '<i class="fas fa-cog"></i> Convert to DXF';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error starting processing');
+                processButton.disabled = false;
+                processButton.innerHTML = '<i class="fas fa-cog"></i> Convert to DXF';
+            });
+        });
+    }
+
+    function checkProcessingStatus() {
+        const statusCheck = setInterval(() => {
+            fetch('{{ url_for("viewer.check_status", file_id=file.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'complete') {
+                        clearInterval(statusCheck);
+                        window.location.href = '{{ url_for("viewer.view_dxf", file_id=file.id) }}';
+                    } else if (data.status === 'error') {
+                        clearInterval(statusCheck);
+                        alert('Error during processing');
+                        processButton.disabled = false;
+                        processButton.innerHTML = '<i class="fas fa-cog"></i> Convert to DXF';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking status:', error);
+                    clearInterval(statusCheck);
+                    alert('Error checking processing status');
+                    processButton.disabled = false;
+                    processButton.innerHTML = '<i class="fas fa-cog"></i> Convert to DXF';
+                });
+        }, 2000);
+    }
+});
+</script>
+{% endblock %} 

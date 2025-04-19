@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - FAIL3D{% endblock %}
+
+{% block styles %}
+<style>
+    .settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .settings-header {
+        margin-bottom: 2rem;
+    }
+
+    .settings-header h1 {
+        font-size: 2rem;
+        font-weight: 400;
+        color: var(--text-primary);
+    }
+
+    .settings-section {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .settings-section h2 {
+        font-size: 1.25rem;
+        font-weight: 400;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-select {
+        width: 100%;
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1rem;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    .form-input {
+        width: 100%;
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    .form-input::placeholder {
+        color: var(--text-secondary);
+    }
+
+    .toggle-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .toggle-label {
+        font-size: 0.875rem;
+        font-weight: 400;
+        color: var(--text-secondary);
+    }
+
+    .toggle {
+        position: relative;
+        width: 44px;
+        height: 24px;
+    }
+
+    .toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--border-color);
+        transition: 0.4s;
+        border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+
+    .toggle input:checked + .toggle-slider {
+        background-color: var(--primary);
+    }
+
+    .toggle input:checked + .toggle-slider:before {
+        transform: translateX(20px);
+    }
+
+    .settings-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .btn-save {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 400;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-save:hover {
+        background-color: var(--primary-hover);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <header class="settings-header">
+        <h1>Settings</h1>
+    </header>
+
+    <form method="POST" action="{{ url_for('dashboard.save_settings') }}">
+        <!-- Conversion Settings -->
+        <section class="settings-section">
+            <h2>Conversion Settings</h2>
+            <div class="form-group">
+                <label class="form-label">Default DXF Version</label>
+                <select class="form-select" name="dxf_version">
+                    <option value="2018" {% if settings.dxf_version == '2018' %}selected{% endif %}>AutoCAD 2018</option>
+                    <option value="2013" {% if settings.dxf_version == '2013' %}selected{% endif %}>AutoCAD 2013</option>
+                    <option value="2010" {% if settings.dxf_version == '2010' %}selected{% endif %}>AutoCAD 2010</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Export Quality</label>
+                <select class="form-select" name="export_quality">
+                    <option value="high" {% if settings.export_quality == 'high' %}selected{% endif %}>High (Slower)</option>
+                    <option value="medium" {% if settings.export_quality == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="low" {% if settings.export_quality == 'low' %}selected{% endif %}>Low (Faster)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Default Units</label>
+                <select class="form-select" name="default_units">
+                    <option value="mm" {% if settings.default_units == 'mm' %}selected{% endif %}>Millimeters</option>
+                    <option value="in" {% if settings.default_units == 'in' %}selected{% endif %}>Inches</option>
+                    <option value="m" {% if settings.default_units == 'm' %}selected{% endif %}>Meters</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Interface Settings -->
+        <section class="settings-section">
+            <h2>Interface Settings</h2>
+            <div class="form-group">
+                <div class="toggle-group">
+                    <span class="toggle-label">Dark Mode</span>
+                    <label class="toggle">
+                        <input type="checkbox" name="dark_mode" {% if settings.dark_mode %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Default View</label>
+                <select class="form-select" name="default_view">
+                    <option value="3d" {% if settings.default_view == '3d' %}selected{% endif %}>3D Preview</option>
+                    <option value="2d" {% if settings.default_view == '2d' %}selected{% endif %}>2D Preview</option>
+                    <option value="split" {% if settings.default_view == 'split' %}selected{% endif %}>Split View</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Account Settings -->
+        <section class="settings-section">
+            <h2>Account Settings</h2>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" name="email" value="{{ current_user.email }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Change Password</label>
+                <input type="password" class="form-input" name="new_password" placeholder="New password">
+            </div>
+        </section>
+
+        <div class="settings-actions">
+            <button type="submit" class="btn-save">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %} 

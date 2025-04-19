@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}About - FAIL3D{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-8">About FAIL3D</h1>
+
+    <div class="space-y-8">
+        <!-- Project Overview -->
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <h2 class="text-xl font-semibold mb-4">Project Overview</h2>
+            <p class="text-muted-foreground leading-relaxed">
+                FAIL3D is an advanced STL to DXF conversion tool designed for engineers, designers, and makers. 
+                Our platform provides a seamless way to convert 3D STL files into 2D DXF format, making it easier 
+                to work with CAD software and CNC machines.
+            </p>
+        </div>
+
+        <!-- Features -->
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <h2 class="text-xl font-semibold mb-4">Key Features</h2>
+            <ul class="space-y-3 text-muted-foreground">
+                <li class="flex items-start gap-2">
+                    <svg class="w-6 h-6 text-primary flex-shrink-0" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                    </svg>
+                    <span>Fast and accurate STL to DXF conversion</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-6 h-6 text-primary flex-shrink-0" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                    </svg>
+                    <span>Support for multiple CAD software formats</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-6 h-6 text-primary flex-shrink-0" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                    </svg>
+                    <span>Real-time preview and editing capabilities</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <svg class="w-6 h-6 text-primary flex-shrink-0" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                    </svg>
+                    <span>Batch processing for multiple files</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Technology Stack -->
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <h2 class="text-xl font-semibold mb-4">Technology Stack</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="flex items-center gap-2 text-muted-foreground">
+                    <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 2L2 8l10 6 10-6-10-6zM2 16l10 6 10-6-10-6-10 6z"/>
+                    </svg>
+                    <span>Python</span>
+                </div>
+                <div class="flex items-center gap-2 text-muted-foreground">
+                    <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 2L2 8l10 6 10-6-10-6zM2 16l10 6 10-6-10-6-10 6z"/>
+                    </svg>
+                    <span>Flask</span>
+                </div>
+                <div class="flex items-center gap-2 text-muted-foreground">
+                    <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 2L2 8l10 6 10-6-10-6zM2 16l10 6 10-6-10-6-10 6z"/>
+                    </svg>
+                    <span>Three.js</span>
+                </div>
+                <div class="flex items-center gap-2 text-muted-foreground">
+                    <svg class="w-5 h-5 text-primary" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 2L2 8l10 6 10-6-10-6zM2 16l10 6 10-6-10-6-10 6z"/>
+                    </svg>
+                    <span>Tailwind CSS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Version Info -->
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <h2 class="text-xl font-semibold mb-4">Version Information</h2>
+            <div class="space-y-2 text-muted-foreground">
+                <p>Version: 1.0.0</p>
+                <p>Last Updated: April 2024</p>
+                <p>License: MIT</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

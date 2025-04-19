@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Login - FAIL3D{% endblock %}
+
+{% block styles %}
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 400px;
+        background-color: #1a1a1a;
+        border-radius: 20px;
+        padding: 2.5rem;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .logo {
+        width: 40px;
+        height: 40px;
+        background-color: #4169e1;
+        transform: rotate(45deg);
+    }
+
+    .login-header h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #ffffff;
+    }
+
+    .login-header p {
+        color: #666666;
+        font-size: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.75rem;
+        color: #999999;
+        font-size: 1rem;
+        font-weight: 400;
+    }
+
+    .form-control {
+        width: 91%;
+        padding: 1rem;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid #333333;
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #4169e1;
+        outline: none;
+        box-shadow: none;
+    }
+
+    .form-control::placeholder {
+        color: #666666;
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 1rem;
+        margin-top: 1rem;
+        background-color: #4169e1;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-login:hover {
+        background-color: #3158d4;
+    }
+
+    .form-footer {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .form-footer p {
+        color: #666666;
+        font-size: 0.875rem;
+    }
+
+    .form-footer a {
+        color: #4169e1;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .form-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid #333333;
+    }
+
+    .alert-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo-container">
+                <div class="logo"></div>
+            </div>
+            <h1>Welcome to FAIL3D</h1>
+            <p>Sign in to continue to your dashboard</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" 
+                       class="form-control" 
+                       id="username" 
+                       name="username" 
+                       placeholder="Enter your username"
+                       autocomplete="username"
+                       required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" 
+                       class="form-control" 
+                       id="password" 
+                       name="password" 
+                       placeholder="Enter your password"
+                       autocomplete="current-password"
+                       required>
+            </div>
+            <button type="submit" class="btn-login">Sign In</button>
+        </form>
+
+        <div class="form-footer">
+            <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

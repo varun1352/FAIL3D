@@ -1,0 +1,128 @@
+/* Main Styles for STL to DXF Converter */
+
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+/* File Upload Area */
+.file-upload-container {
+    width: 100%;
+    padding: 20px;
+}
+
+.upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+}
+
+.upload-area.dragover {
+    border-color: #007bff;
+    background-color: #e8f0fe;
+}
+
+.upload-icon {
+    font-size: 48px;
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+/* File Cards */
+.file-info {
+    margin-bottom: 15px;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.status-badge.uploaded {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.status-badge.processing {
+    background-color: #cff4fc;
+    color: #055160;
+}
+
+.status-badge.complete {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-badge.error {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+/* Card Styles */
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.card-title {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Button Styles */
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.btn-outline-success:hover {
+    background-color: #198754;
+    color: white;
+}
+
+.btn-outline-dark:hover {
+    background-color: #212529;
+    color: white;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    .card-title {
+        font-size: 1.25rem;
+    }
+    
+    .upload-area {
+        padding: 20px;
+    }
+}

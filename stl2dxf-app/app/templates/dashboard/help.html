@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Help - FAIL3D{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-8">Help Center</h1>
+
+    <div class="space-y-8">
+        <!-- Quick Start Guide -->
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <h2 class="text-xl font-semibold mb-4">Quick Start Guide</h2>
+            <ol class="space-y-4 text-muted-foreground">
+                <li class="flex gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">1</span>
+                    <div>
+                        <h3 class="font-medium text-foreground">Upload your STL file</h3>
+                        <p>Click the "UPLOAD STL" button on the dashboard and select your STL file.</p>
+                    </div>
+                </li>
+                <li class="flex gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">2</span>
+                    <div>
+                        <h3 class="font-medium text-foreground">Preview the model</h3>
+                        <p>Once uploaded, you can preview your 3D model and adjust the view as needed.</p>
+                    </div>
+                </li>
+                <li class="flex gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">3</span>
+                    <div>
+                        <h3 class="font-medium text-foreground">Convert to DXF</h3>
+                        <p>Click "Convert" to generate the DXF file. The process may take a few moments.</p>
+                    </div>
+                </li>
+                <li class="flex gap-3">
+                    <span class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">4</span>
+                    <div>
+                        <h3 class="font-medium text-foreground">Download the result</h3>
+                        <p>Once conversion is complete, download your DXF file from the dashboard.</p>
+                    </div>
+                </li>
+            </ol>
+        </div>
+
+        <!-- FAQs -->
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <h2 class="text-xl font-semibold mb-4">Frequently Asked Questions</h2>
+            <div class="space-y-4">
+                <div class="border-b border-border pb-4">
+                    <h3 class="font-medium mb-2">What file formats are supported?</h3>
+                    <p class="text-muted-foreground">We currently support STL files (both binary and ASCII) for input and generate DXF files compatible with major CAD software.</p>
+                </div>
+                <div class="border-b border-border pb-4">
+                    <h3 class="font-medium mb-2">How accurate is the conversion?</h3>
+                    <p class="text-muted-foreground">Our conversion algorithm maintains high accuracy while optimizing the output for practical use. You can adjust the quality settings for your specific needs.</p>
+                </div>
+                <div class="border-b border-border pb-4">
+                    <h3 class="font-medium mb-2">What are the file size limits?</h3>
+                    <p class="text-muted-foreground">The maximum file size for STL uploads is 100MB. For larger files, please contact support.</p>
+                </div>
+                <div>
+                    <h3 class="font-medium mb-2">Can I batch process multiple files?</h3>
+                    <p class="text-muted-foreground">Yes, you can upload multiple STL files and convert them to DXF format in batch.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support -->
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <h2 class="text-xl font-semibold mb-4">Need More Help?</h2>
+            <div class="space-y-4">
+                <p class="text-muted-foreground">
+                    If you need additional assistance or have specific questions, our support team is here to help.
+                </p>
+                <div class="flex gap-4">
+                    <a href="mailto:support@fail3d.com" 
+                       class="inline-flex items-center gap-2 text-primary hover:text-primary/90 transition-colors">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                        Contact Support
+                    </a>
+                    <a href="#" class="inline-flex items-center gap-2 text-primary hover:text-primary/90 transition-colors">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+                        </svg>
+                        Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

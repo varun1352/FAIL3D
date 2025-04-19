@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - STL to DXF Converter{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Upload STL File</h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" action="{{ url_for('dashboard.upload_file') }}" enctype="multipart/form-data" id="uploadForm">
+                        <div class="file-upload-container">
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <p>Drag and drop your STL file here</p>
+                                <p>OR</p>
+                                <label for="fileInput" class="btn btn-primary">Choose File</label>
+                                <input type="file" name="file" id="fileInput" accept=".stl" style="display: none;">
+                                <div id="fileNameDisplay" class="mt-2"></div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-success" id="uploadButton" disabled>Upload STL File</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">My Files</h3>
+                </div>
+                <div class="card-body">
+                    {% if files %}
+                    <div class="row row-cols-1 row-cols-md-3 g-4">
+                        {% for file in files %}
+                        <div class="col">
+                            <div class="card h-100" data-file-id="{{ file.id }}">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0" title="{{ file.filename }}">
+                                        {{ file.filename }}
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="file-info">
+                                        <p><strong>Upload Date:</strong> {{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                                        <p><strong>Status:</strong> 
+                                            <span class="status-badge {{ file.status }}">{{ file.status.title() }}</span>
+                                        </p>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{{ url_for('viewer.view_stl', file_id=file.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">View STL</a>
+                                        {% if file.processed %}
+                                        <a href="{{ url_for('viewer.view_dxf', file_id=file.id) }}" 
+                                           class="btn btn-sm btn-outline-success">View DXF</a>
+                                        {% else %}
+                                        <button class="btn btn-sm btn-outline-secondary" disabled>DXF Not Ready</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{{ url_for('viewer.download_stl', file_id=file.id) }}" 
+                                           class="btn btn-sm btn-outline-dark">Download STL</a>
+                                        {% if file.processed %}
+                                        <a href="{{ url_for('viewer.download_dxf', file_id=file.id) }}" 
+                                           class="btn btn-sm btn-outline-dark">Download DXF</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info text-center">
+                        <p>You don't have any files yet. Upload an STL file to get started!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

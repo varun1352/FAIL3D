@@ -1,0 +1,9 @@
+flask>=3.0.0
+numpy>=1.24.0
+numpy-stl>=2.16.3
+ezdxf>=0.17.2
+werkzeug>=3.0.0
+flask-login>=0.6.0
+flask-restx>=1.1.0
+python-dotenv>=0.19.0
+opencv-python==4.8.1.78

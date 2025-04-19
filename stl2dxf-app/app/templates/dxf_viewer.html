@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}DXF Viewer - {{ file_info.original_name }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/viewer.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('viewer.view_stl', file_id=file_info.id) }}">STL: {{ file_info.original_name }}</a></li>
+                <li class="breadcrumb-item active">DXF Viewer</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="card-title mb-0">DXF Engineering Drawing</h3>
+            </div>
+            <div class="card-body p-0">
+                <div id="dxfViewer" class="viewer-container"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">File Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Original:</strong> {{ file_info.original_name }}</p>
+                <p><strong>DXF File:</strong> {{ file_info.original_name|replace('.stl', '.dxf') }}</p>
+                <p><strong>Processed:</strong> {{ file_info.upload_date }}</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('viewer.download_dxf', file_id=file_info.id) }}" class="btn btn-sm btn-outline-dark">Download DXF File</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Drawing Controls</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="viewSelect" class="form-label">View Mode</label>
+                    <select id="viewSelect" class="form-select">
+                        <option value="combined">Combined View</option>
+                        <option value="top">Top View</option>
+                        <option value="front">Front View</option>
+                        <option value="right">Right View</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="zoomRange" class="form-label">Zoom: <span id="zoomValue">100%</span></label>
+                    <input type="range" class="form-range" id="zoomRange" min="50" max="200" value="100">
+                </div>
+                
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="gridToggle" checked>
+                    <label class="form-check-label" for="gridToggle">Show Grid</label>
+                </div>
+                
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="dimensionsToggle" checked>
+                    <label class="form-check-label" for="dimensionsToggle">Show Dimensions</label>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <a href="{{ url_for('viewer.view_stl', file_id=file_info.id) }}" class="btn btn-outline-primary">Back to STL Model</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/dxf-viewer@1.0.27/dist/dxf-viewer.min.js"></script>
+<script>
+    // File info for the JavaScript
+    const fileInfo = {
+        id: "{{ file_info.id }}",
+        dxfPath: "{{ url_for('viewer.serve_dxf_file', filename=file_info.dxf_filename) }}"
+    };
+</script>
+<script src="{{ url_for('static', filename='js/dxf-viewer.js') }}"></script>
+{% endblock %}
