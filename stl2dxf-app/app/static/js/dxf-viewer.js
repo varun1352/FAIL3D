@@ -57,20 +57,25 @@ class DXFViewer {
     }
     
     loadDXF(dxfData) {
-        const parser = new DXFParser();
-        const dxf = parser.parseSync(dxfData);
-        this.clearScene();
-        if (dxf.entities && Array.isArray(dxf.entities)) {
-            dxf.entities.forEach(entity => {
-                try {
-                    this.processEntity(entity);
-                } catch (err) {
-                    console.warn('Error processing entity:', err);
-                }
-            });
+        const parser = new DxfParser();
+        try {
+            const dxf = parser.parseSync(dxfData);
+            this.clearScene();
+            if (dxf.entities && Array.isArray(dxf.entities)) {
+                dxf.entities.forEach(entity => {
+                    try {
+                        this.processEntity(entity);
+                    } catch (err) {
+                        console.warn('Error processing entity:', err);
+                    }
+                });
+            }
+            this.updateLayerList();
+            this.centerView();
+        } catch (err) {
+            console.error('Error parsing DXF:', err);
+            throw err;
         }
-        this.updateLayerList();
-        this.centerView();
     }
     
     processEntity(entity) {

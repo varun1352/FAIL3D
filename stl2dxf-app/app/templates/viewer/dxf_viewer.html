@@ -90,9 +90,9 @@
 </div>
 
 <!-- Scripts -->
-<script src="{{ url_for('static', filename='js/three.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/OrbitControls.js') }}"></script>
-<script src="{{ url_for('static', filename='js/dxf-parser.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lib/three.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lib/OrbitControls.js') }}"></script>
+<script src="{{ url_for('static', filename='js/lib/dxf-parser.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dxf-viewer.js') }}"></script>
 
 <script>
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         loadingEl.classList.remove('hidden');
         
-        fetch(`/api/dxf/${fileId}`)
+        fetch(`/viewer/api/dxf/${fileId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load DXF file');
@@ -124,13 +124,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     viewer.loadDXF(data);
                     
                     // Update file info
-                    document.getElementById('filename').textContent = fileId;
+                    document.getElementById('filename').textContent = '{{ filename }}';
                     document.getElementById('filesize').textContent = data.length;
                     
                     // Enable download
                     downloadBtn.disabled = false;
                     downloadBtn.onclick = () => {
-                        window.location.href = `/api/dxf/${fileId}/download`;
+                        window.location.href = `/viewer/api/dxf/${fileId}/download`;
                     };
                 } catch (err) {
                     throw err;

@@ -17,81 +17,185 @@ viewer_bp = Blueprint('viewer', __name__, url_prefix='/viewer')
 @viewer_bp.route('/stl/<file_id>')
 @login_required
 def view_stl(file_id):
-    file = File.get_by_id(file_id)
-    if not file:
+    if file_id not in current_user._files:
         abort(404)
-    return render_template('viewer/stl_viewer.html', file=file)
+    return render_template('viewer/stl_viewer.html', file=current_user._files[file_id])
 
 @viewer_bp.route('/dxf/<file_id>')
 @login_required
 def view_dxf(file_id):
-    file = File.get_by_id(file_id)
-    if not file or not file.processed or not file.dxf_path:
+    if file_id not in current_user._files:
         abort(404)
-    return render_template('viewer/dxf_viewer.html', file=file, file_id=file_id, filename=file.filename)
+    
+    file = current_user._files[file_id]
+    if not file['processed'] or not file['dxf_path']:
+        flash('DXF file not ready yet', 'error')
+        return redirect(url_for('dashboard.view_file', file_id=file_id))
+    
+    return render_template('viewer/dxf_viewer.html', 
+                         file=file,
+                         file_id=file_id,
+                         filename=file['filename'])
 
-@viewer_bp.route('/process', methods=['POST'])
-def process():
-    file_id = request.form.get('file_id')
-    if not file_id:
-        return jsonify({'error': 'No file ID provided'}), 400
-
-    file = File.get_by_id(file_id)
-    if not file:
-        return jsonify({'error': 'File not found'}), 404
-
-    if file.status == 'processed':
-        return jsonify({'message': 'File already processed', 'status': file.status}), 200
-
+@viewer_bp.route('/api/dxf/<file_id>')
+@login_required
+def get_dxf_content(file_id):
+    if file_id not in current_user._files:
+        abort(404)
+    
+    file = current_user._files[file_id]
+    if not file['processed'] or not file['dxf_path']:
+        abort(404)
+    
     try:
-        # Convert the file synchronously
-        success = convert_stl_to_dxf(file)
-        if success:
-            file.status = 'processed'
-            file.save()
-            return jsonify({'message': 'File processed successfully', 'status': file.status}), 200
-        else:
-            file.status = 'failed'
-            file.save()
-            return jsonify({'error': 'Conversion failed', 'status': file.status}), 500
-
+        with open(file['dxf_path'], 'r') as f:
+            content = f.read()
+        return Response(content, mimetype='text/plain')
     except Exception as e:
-        file.status = 'failed'
-        file.save()
-        current_app.logger.error(f"Error processing file {file_id}: {str(e)}")
-        return jsonify({'error': 'Internal server error', 'status': file.status}), 500
+        print(f"Error reading DXF file: {str(e)}")
+        abort(500)
+
+@viewer_bp.route('/api/dxf/<file_id>/download')
+@login_required
+def download_dxf(file_id):
+    if file_id not in current_user._files:
+        abort(404)
+    
+    file = current_user._files[file_id]
+    if not file['processed'] or not file['dxf_path']:
+        abort(404)
+    
+    return send_file(
+        file['dxf_path'],
+        as_attachment=True,
+        download_name=os.path.basename(file['dxf_path'])
+    )
+
+@viewer_bp.route('/process/<file_id>', methods=['POST'])
+@login_required
+def process(file_id):
+    try:
+        print(f"Starting processing for file_id: {file_id}")
+        
+        if file_id not in current_user._files:
+            print(f"File not found with id: {file_id}")
+            return jsonify({'status': 'error', 'message': 'File not found'})
+        
+        file = current_user._files[file_id]
+        if file['processed']:
+            print(f"File already processed: {file_id}")
+            return jsonify({'status': 'complete'})
+        
+        # Store necessary paths before starting the thread
+        app_root = current_app.root_path
+        input_path = file['filepath']
+        
+        print(f"Input path: {input_path}")
+        if not os.path.exists(input_path):
+            print(f"Input file does not exist at path: {input_path}")
+            return jsonify({'status': 'error', 'message': 'Input file not found'})
+        
+        # Create DXF filename with timestamp to avoid conflicts
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        dxf_filename = f"input_{timestamp}.dxf"
+        dxf_path = os.path.join(app_root, 'uploads', 'dxf', dxf_filename)
+        
+        # Ensure the dxf directory exists
+        dxf_dir = os.path.dirname(dxf_path)
+        if not os.path.exists(dxf_dir):
+            print(f"Creating DXF directory: {dxf_dir}")
+            os.makedirs(dxf_dir, exist_ok=True)
+        
+        # Start conversion in background
+        file['status'] = 'processing'
+        
+        def process_in_thread():
+            try:
+                print(f"Converting file: {input_path}")
+                print(f"Output path: {dxf_path}")
+                
+                # Get the script path
+                script_path = os.path.join(app_root, '..', 'stl_to_dxf_works.py')
+                print(f"Script path: {script_path}")
+                
+                if not os.path.exists(script_path):
+                    print(f"Conversion script not found at: {script_path}")
+                    file['status'] = 'error'
+                    return
+                
+                # Build the command
+                cmd = [
+                    'python',
+                    script_path,
+                    input_path,
+                    '-o', dxf_path,
+                    '-t', '2000',  # Tolerance value
+                    '-v',  # Verbose output
+                    '--no-sections'  # Don't create section views
+                ]
+                
+                # Run the conversion script
+                print(f"Running command: {' '.join(cmd)}")
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                
+                if result.returncode == 0:
+                    print("Command output: ")
+                    print(result.stdout)
+                    print("Conversion completed successfully")
+                    file['status'] = 'complete'
+                    file['processed'] = True
+                    file['dxf_path'] = dxf_path
+                else:
+                    print("Error output:")
+                    print(result.stderr)
+                    file['status'] = 'error'
+                    
+            except Exception as e:
+                print(f"Error during conversion: {str(e)}")
+                file['status'] = 'error'
+        
+        # Start processing in a separate thread
+        thread = threading.Thread(target=process_in_thread)
+        thread.start()
+        print(f"Started processing thread for file: {file_id}")
+        
+        return jsonify({'status': 'processing'})
+        
+    except Exception as e:
+        print(f"Error in process route: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @viewer_bp.route('/check-status/<file_id>')
 @login_required
 def check_status(file_id):
-    file = File.get_by_id(file_id)
-    if not file:
+    if file_id not in current_user._files:
         abort(404)
+    file = current_user._files[file_id]
     return jsonify({
-        'status': file.status,
-        'processed': file.processed
+        'status': file['status'],
+        'processed': file['processed']
     })
 
 @viewer_bp.route('/download/<file_id>/<format>')
 @login_required
 def download_file(file_id, format):
     """Download STL or DXF file"""
-    file = File.get_by_id(file_id)
-    if not file:
+    if file_id not in current_user._files:
         abort(404)
+    file = current_user._files[file_id]
     
     if format.lower() == 'stl':
-        if not os.path.exists(file.filepath):
+        if not os.path.exists(file['filepath']):
             abort(404)
-        directory = os.path.dirname(file.filepath)
-        filename = os.path.basename(file.filepath)
+        directory = os.path.dirname(file['filepath'])
+        filename = os.path.basename(file['filepath'])
         return send_from_directory(directory, filename, as_attachment=True)
     
     elif format.lower() == 'dxf':
-        if not file.processed or not file.dxf_path or not os.path.exists(file.dxf_path):
+        if not file['processed'] or not file['dxf_path'] or not os.path.exists(file['dxf_path']):
             abort(404)
-        directory = os.path.dirname(file.dxf_path)
-        filename = os.path.basename(file.dxf_path)
+        directory = os.path.dirname(file['dxf_path'])
+        filename = os.path.basename(file['dxf_path'])
         return send_from_directory(directory, filename, as_attachment=True)
     
     abort(400)

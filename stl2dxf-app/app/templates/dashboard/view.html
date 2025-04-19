@@ -284,6 +284,12 @@
             {% endif %}
 
             {% if file.processed %}
+            <a href="{{ url_for('viewer.view_dxf', file_id=file.id) }}" class="action-button primary">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                </svg>
+                View DXF
+            </a>
             <a href="{{ url_for('dashboard.download_dxf', file_id=file.id) }}" class="action-button primary">
                 <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
@@ -417,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     Processing...
                 `;
                 
-                const response = await fetch(`/api/process/${fileId}`, {
+                const response = await fetch(`/viewer/process/${fileId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -429,11 +435,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 const data = await response.json();
-                if (data.status === 'success') {
-                    window.location.reload();
-                } else {
-                    throw new Error(data.message || 'Failed to process file');
-                }
+                
+                // Start polling for status
+                const checkStatus = async () => {
+                    const statusResponse = await fetch(`/viewer/check-status/${fileId}`);
+                    const statusData = await statusResponse.json();
+                    
+                    if (statusData.status === 'complete') {
+                        window.location.reload();
+                    } else if (statusData.status === 'error') {
+                        throw new Error('Processing failed');
+                    } else {
+                        // Continue polling
+                        setTimeout(checkStatus, 2000);
+                    }
+                };
+                
+                // Start checking status
+                checkStatus();
+                
             } catch (error) {
                 console.error('Error processing file:', error);
                 processButton.disabled = false;
